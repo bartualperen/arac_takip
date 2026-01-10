@@ -1,0 +1,61 @@
+Gazebo Harmonic Installation
+
+sudo apt-get update
+sudo apt-get install curl lsb-release gnupg
+
+sudo curl https://packages.osrfoundation.org/gazebo.gpg --output /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/pkgs-osrf-archive-keyring.gpg] https://packages.osrfoundation.org/gazebo/ubuntu-stable $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/gazebo-stable.list > /dev/null
+sudo apt-get update
+sudo apt-get install gz-harmonic
+
+
+
+Ardupilot Installation
+
+sudo apt update
+sudo apt install libgz-sim8-dev rapidjson-dev
+sudo apt install libopencv-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev gstreamer1.0-plugins-bad gstreamer1.0-libav gstreamer1.0-gl
+
+git clone https://github.com/ArduPilot/ardupilot_gazebo
+cd ardupilot_gazebo
+mkdir build && cd build
+cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo
+make -j4
+
+cd ~
+git clone --recursive https://github.com/ArduPilot/ardupilot.git
+cd ardupilot
+
+sudo apt update
+sudo apt install python3-matplotlib python3-serial python3-wxgtk4.0 python3-lxml python3-scipy python3-opencv ccache gawk python3-pip python3-pexpect
+pip3 install MAVProxy pymavlink future
+sudo python3 -m pip install empy==3.3.4
+
+export PATH=$PATH:$HOME/ardupilot/Tools/autotest
+export PATH=$PATH:$HOME/.local/bin
+
+
+
+Ardupilot for Gazebo Harmonic
+
+sudo apt update
+sudo apt install libgz-sim8-dev rapidjson-dev-y
+sudo apt install libopencv-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev gstreamer1.0-plugins-bad gstreamer1.0-libav gstreamer1.0-gl -y
+
+mkdir -p gz_ws/src && cd gz_ws/src
+git clone https://github.com/ArduPilot/ardupilot_gazebo
+
+export GZ_VERSION=harmonic
+cd ardupilot_gazebo
+mkdir build && cd build
+cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo
+make -j4
+
+export GZ_SIM_SYSTEM_PLUGIN_PATH=$HOME/gz_ws/src/ardupilot_gazebo/build:$GZ_SIM_SYSTEM_PLUGIN_PATH
+export GZ_SIM_RESOURCE_PATH=$HOME/gz_ws/src/ardupilot_gazebo/models:$HOME/gz_ws/src/ardupilot_gazebo/worlds:$GZ_SIM_RESOURCE_PATH
+
+
+Calistirma 
+
+gz sim -v4 -r iris_runway.sdf
+sim_vehicle.py -v ArduCopter -f gazebo-iris --model JSON --map --console

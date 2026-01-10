@@ -3,16 +3,9 @@ FROM ubuntu:22.04
 ARG DEBIAN_FRONTEND=noninteractive
 ENV TZ=Europe/Istanbul
 
-# 1. Hazırlık: Repolar
+# 1. Hazırlık: Temel Araçlar ve Repolar
 RUN apt-get update && apt-get install -y \
     software-properties-common \
-    && add-apt-repository universe \
-    && add-apt-repository multiverse \
-    && apt-get update
-
-# 2. Temel Araçlar ve Gazebo
-# 'cmake' ve 'build-essential' ekledik
-RUN apt-get install -y \
     lsb-release \
     sudo \
     git \
@@ -22,32 +15,63 @@ RUN apt-get install -y \
     curl \
     nano \
     tzdata \
-    mesa-utils \
-    libgl1-mesa-glx \
-    libgl1-mesa-dri \
-    x11-apps \
-    gazebo \
-    libgazebo-dev \
-    libopencv-dev \
     cmake \
     build-essential \
+    gnupg \
+    && add-apt-repository universe \
+    && add-apt-repository multiverse \
+    && apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
-# 3. Python Bağımlılıkları (NumPy Fix Dahil)
-RUN pip3 install --no-cache-dir \
-    MAVProxy \
-    pexpect \
-    future \
-    pymavlink \
-    empy==3.3.4 \
-    "numpy<2.0.0"
+# 2. Gazebo Harmonic Kurulumu
+RUN curl https://packages.osrfoundation.org/gazebo.gpg --output /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg \
+    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/pkgs-osrf-archive-keyring.gpg] https://packages.osrfoundation.org/gazebo/ubuntu-stable $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/gazebo-stable.list > /dev/null \
+    && apt-get update \
+    && apt-get install -y gz-harmonic
 
-# 4. Eksik GUI Paketleri (Console/Map için)
+# 3. Ardupilot Kurulumu (Ana Dizine)
+WORKDIR /
+RUN git clone --recursive https://github.com/ArduPilot/ardupilot.git
+
+# Ardupilot Bağımlılıkları
+WORKDIR /ardupilot
 RUN apt-get update && apt-get install -y \
-    python3-wxgtk4.0 \
     python3-matplotlib \
+    python3-serial \
+    python3-wxgtk4.0 \
+    python3-lxml \
+    python3-scipy \
     python3-opencv \
-    && rm -rf /var/lib/apt/lists/*
+    ccache \
+    gawk \
+    python3-pexpect \
+    libgz-sim8-dev \
+    rapidjson-dev \
+    libopencv-dev \
+    libgstreamer1.0-dev \
+    libgstreamer-plugins-base1.0-dev \
+    gstreamer1.0-plugins-bad \
+    gstreamer1.0-libav \
+    gstreamer1.0-gl
+
+# Python Paketleri
+RUN pip3 install MAVProxy pymavlink future empy==3.3.4
+
+# 4. Ardupilot Gazebo Plugin Kurulumu
+WORKDIR /gz_ws/src
+RUN git clone https://github.com/ArduPilot/ardupilot_gazebo
+
+WORKDIR /gz_ws/src/ardupilot_gazebo
+RUN mkdir build && cd build \
+    && cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+    && make -j4
+
+# Çevre Değişkenleri (Herkes için geçerli olması için global tanımlıyoruz)
+ENV PATH=$PATH:/ardupilot/Tools/autotest
+ENV PATH=$PATH:/root/.local/bin
+ENV GZ_SIM_SYSTEM_PLUGIN_PATH=/gz_ws/src/ardupilot_gazebo/build:$GZ_SIM_SYSTEM_PLUGIN_PATH
+ENV GZ_SIM_RESOURCE_PATH=/gz_ws/src/ardupilot_gazebo/models:/gz_ws/src/ardupilot_gazebo/worlds:$GZ_SIM_RESOURCE_PATH
+ENV GZ_SIM_RENDER_ENGINE_BACKEND=ogre2
 
 # 5. Kullanıcı Oluşturma
 ARG USERNAME=droneuser
@@ -59,26 +83,7 @@ RUN groupadd --gid $USER_GID $USERNAME \
     && echo "$USERNAME ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/$USERNAME \
     && chmod 0440 /etc/sudoers.d/$USERNAME
 
+RUN chown -R $USERNAME:$USER_GID /ardupilot /gz_ws
+
 USER $USERNAME
 WORKDIR /home/$USERNAME
-
-# 6. ArduPilot Kaynak Kodunu İndir
-RUN git clone --recurse-submodules https://github.com/ArduPilot/ardupilot.git
-
-# 7. Gazebo Plugin Kurulumu (OTOMATİK)
-RUN git clone https://github.com/khancyr/ardupilot_gazebo.git \
-    && cd ardupilot_gazebo \
-    && mkdir build \
-    && cd build \
-    && cmake .. \
-    && make -j4 \
-    && sudo make install
-
-# 8. Ortam Değişkenleri (Kalıcı)
-ENV PATH="/home/$USERNAME/ardupilot/Tools/autotest:${PATH}"
-ENV PATH="/usr/lib/ccache:${PATH}"
-ENV GAZEBO_MODEL_PATH="/home/$USERNAME/ardupilot_gazebo/models:${GAZEBO_MODEL_PATH}"
-ENV GAZEBO_RESOURCE_PATH="/home/$USERNAME/ardupilot_gazebo/worlds:${GAZEBO_RESOURCE_PATH}"
-ENV OGRE_RESOURCE_PATH="/usr/lib/x86_64-linux-gnu/OGRE-1.9.0/"
-
-CMD ["/bin/bash"]
