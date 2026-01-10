@@ -1,0 +1,27 @@
+services:
+  drone_sim:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: tubitak_drone_sim
+    stdin_open: true
+    tty: true
+    privileged: true
+    network_mode: host
+    environment:
+      - DISPLAY=${DISPLAY}
+      - QT_X11_NO_MITSHM=1
+      - NVIDIA_VISIBLE_DEVICES=all
+      - LIBGL_ALWAYS_SOFTWARE=0
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - ~/.Xauthority:/home/droneuser/.Xauthority:rw
+      # DİKKAT: Burası kritik değişiklik.
+      # Host makinedeki mevcut klasörü, konteyner içine 'proje' olarak bağlıyoruz.
+      - .:/home/droneuser/proje
+    devices:
+      - /dev/dri:/dev/dri
+      - /dev/kfd:/dev/kfd
+    group_add:
+      - video
+      - "992"
