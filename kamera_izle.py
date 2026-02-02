@@ -9,7 +9,9 @@ from gz.transport13 import Node
 from gz.msgs10.image_pb2 import Image
 
 # Sizin bulduğunuz topic adresi
-TOPIC_NAME = "/world/iris_runway/model/iris_with_gimbal/model/gimbal/link/pitch_link/sensor/camera/image"
+#/world/sonoma/model/iris_with_gimbal/model/gimbal/link/pitch_link/sensor/camera/image
+#TOPIC_NAME = "/world/iris_runway/model/iris_with_gimbal/model/gimbal/link/pitch_link/sensor/camera/image"
+TOPIC_NAME = "/world/sonoma/model/iris_with_gimbal/model/gimbal/link/pitch_link/sensor/camera/image"
 
 def cb(msg):
     try:

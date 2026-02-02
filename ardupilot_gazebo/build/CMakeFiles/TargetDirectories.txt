@@ -1,0 +1,10 @@
+/gz_ws/src/ardupilot_gazebo/build/CMakeFiles/ArduPilotPlugin.dir
+/gz_ws/src/ardupilot_gazebo/build/CMakeFiles/ParachutePlugin.dir
+/gz_ws/src/ardupilot_gazebo/build/CMakeFiles/CameraZoomPlugin.dir
+/gz_ws/src/ardupilot_gazebo/build/CMakeFiles/GstCameraPlugin.dir
+/gz_ws/src/ardupilot_gazebo/build/CMakeFiles/edit_cache.dir
+/gz_ws/src/ardupilot_gazebo/build/CMakeFiles/rebuild_cache.dir
+/gz_ws/src/ardupilot_gazebo/build/CMakeFiles/list_install_components.dir
+/gz_ws/src/ardupilot_gazebo/build/CMakeFiles/install.dir
+/gz_ws/src/ardupilot_gazebo/build/CMakeFiles/install/local.dir
+/gz_ws/src/ardupilot_gazebo/build/CMakeFiles/install/strip.dir

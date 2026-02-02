@@ -8,6 +8,7 @@ services:
     tty: true
     privileged: true
     network_mode: host
+    entrypoint: /home/droneuser/entrypoint.sh
     environment:
       - DISPLAY=${DISPLAY}
       - QT_X11_NO_MITSHM=1
@@ -16,9 +17,8 @@ services:
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
       - ~/.Xauthority:/home/droneuser/.Xauthority:rw
-      # DİKKAT: Burası kritik değişiklik.
-      # Host makinedeki mevcut klasörü, konteyner içine 'proje' olarak bağlıyoruz.
       - .:/home/droneuser/proje
+      - ./ardupilot_gazebo:/gz_ws/src/ardupilot_gazebo:rw
     devices:
       - /dev/dri:/dev/dri
       - /dev/kfd:/dev/kfd

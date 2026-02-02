@@ -59,3 +59,5 @@ Calistirma
 
 gz sim -v4 -r iris_runway.sdf
 sim_vehicle.py -v ArduCopter -f gazebo-iris --model JSON --map --console
+
+gz sim -v4 -r ardupilot_gazebo/worlds/prius_on_sonoma_raceway/sonoma.sdf

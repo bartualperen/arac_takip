@@ -52,19 +52,21 @@ RUN apt-get update && apt-get install -y \
     libgstreamer-plugins-base1.0-dev \
     gstreamer1.0-plugins-bad \
     gstreamer1.0-libav \
-    gstreamer1.0-gl
+    gstreamer1.0-gl \
+    libdebuginfod1
 
 # Python Paketleri
 RUN pip3 install MAVProxy pymavlink future empy==3.3.4
 
-# 4. Ardupilot Gazebo Plugin Kurulumu
+# 4. Ardupilot Gazebo Plugin Kurulumu (Geçici clone - daha sonra host'tan senkronize edilecek)
 WORKDIR /gz_ws/src
 RUN git clone https://github.com/ArduPilot/ardupilot_gazebo
 
 WORKDIR /gz_ws/src/ardupilot_gazebo
-RUN mkdir build && cd build \
+RUN mkdir -p build && cd build \
     && cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo \
-    && make -j4
+    && make -j4 \
+    && make install
 
 # Çevre Değişkenleri (Herkes için geçerli olması için global tanımlıyoruz)
 ENV PATH=$PATH:/ardupilot/Tools/autotest
@@ -84,6 +86,10 @@ RUN groupadd --gid $USER_GID $USERNAME \
     && chmod 0440 /etc/sudoers.d/$USERNAME
 
 RUN chown -R $USERNAME:$USER_GID /ardupilot /gz_ws
+
+# Entrypoint script'i kopyala ve çalıştırılabilir yap (root olarak çalışması için)
+COPY docker/entrypoint.sh /home/droneuser/entrypoint.sh
+RUN chmod +x /home/droneuser/entrypoint.sh
 
 USER $USERNAME
 WORKDIR /home/$USERNAME
