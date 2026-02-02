@@ -58,7 +58,7 @@
     <spherical_coordinates>
       <latitude_deg>38.16245133</latitude_deg>
       <longitude_deg>-122.45773993</longitude_deg>
-      <elevation>584</elevation>
+      <elevation>0</elevation>
       <heading_deg>0</heading_deg>
       <surface_model>EARTH_WGS84</surface_model>
     </spherical_coordinates>
