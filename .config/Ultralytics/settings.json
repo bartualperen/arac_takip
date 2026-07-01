@@ -1,0 +1,21 @@
+{
+  "settings_version": "0.0.6",
+  "datasets_dir": "/home/bartu/development/datasets",
+  "weights_dir": "/home/bartu/development/arac_takip/weights",
+  "runs_dir": "/home/bartu/development/arac_takip/runs",
+  "uuid": "987408569ef0f405e3f827794006c29db286ae9a037af6624c70f8e40c8f3c0e",
+  "sync": true,
+  "api_key": "",
+  "openai_api_key": "",
+  "clearml": true,
+  "comet": true,
+  "dvc": true,
+  "hub": true,
+  "mlflow": true,
+  "neptune": true,
+  "raytune": true,
+  "tensorboard": false,
+  "wandb": false,
+  "vscode_msg": true,
+  "openvino_msg": true
+}
