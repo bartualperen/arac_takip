@@ -529,18 +529,20 @@ CMakeFiles/ArduPilotPlugin.dir/src/ArduPilotPlugin.cc.o: ../src/ArduPilotPlugin.
   /usr/include/gz/math7/gz/math/Line2.hh \
   /usr/include/gz/math7/gz/math/detail/WellOrderedVector.hh \
   /usr/include/gz/math7/gz/math/detail/Box.hh \
-  /usr/include/gz/math7/gz/math/Triangle3.hh \
   /usr/include/gz/sdformat14/sdf/Camera.hh \
   /usr/include/gz/sdformat14/sdf/Capsule.hh \
   /usr/include/gz/math7/gz/math/Capsule.hh \
   /usr/include/gz/math7/gz/math/detail/Capsule.hh \
+  /usr/include/gz/math7/gz/math/Cylinder.hh \
+  /usr/include/gz/math7/gz/math/detail/Cylinder.hh \
+  /usr/include/gz/math7/gz/math/detail/WetVolume.hh \
+  /usr/include/gz/math7/gz/math/Sphere.hh \
+  /usr/include/gz/math7/gz/math/detail/Sphere.hh \
   /usr/include/gz/sdformat14/sdf/Collision.hh \
   /usr/include/gz/sdformat14/sdf/Cone.hh \
   /usr/include/gz/math7/gz/math/Cone.hh \
   /usr/include/gz/math7/gz/math/detail/Cone.hh \
   /usr/include/gz/sdformat14/sdf/Cylinder.hh \
-  /usr/include/gz/math7/gz/math/Cylinder.hh \
-  /usr/include/gz/math7/gz/math/detail/Cylinder.hh \
   /usr/include/gz/sdformat14/sdf/Ellipsoid.hh \
   /usr/include/gz/math7/gz/math/Ellipsoid.hh \
   /usr/include/gz/math7/gz/math/detail/Ellipsoid.hh \
@@ -571,8 +573,6 @@ CMakeFiles/ArduPilotPlugin.dir/src/ArduPilotPlugin.cc.o: ../src/ArduPilotPlugin.
   /usr/include/gz/sdformat14/sdf/Sky.hh \
   /usr/include/gz/sdformat14/sdf/Sensor.hh \
   /usr/include/gz/sdformat14/sdf/Sphere.hh \
-  /usr/include/gz/math7/gz/math/Sphere.hh \
-  /usr/include/gz/math7/gz/math/detail/Sphere.hh \
   /usr/include/gz/sdformat14/sdf/Surface.hh \
   /usr/include/gz/sdformat14/sdf/Visual.hh \
   /usr/include/gz/sdformat14/sdf/World.hh \
@@ -1856,6 +1856,8 @@ CMakeFiles/ArduPilotPlugin.dir/src/Util.cc.o: ../src/Util.cc \
 
 /usr/include/gz/msgs10/gz/msgs/details/density.pb.h:
 
+/usr/include/gz/msgs10/gz/msgs/density.pb.h:
+
 /usr/include/gz/msgs10/gz/msgs/details/battery.pb.h:
 
 /usr/include/gz/msgs10/gz/msgs/battery.pb.h:
@@ -2162,6 +2164,14 @@ CMakeFiles/ArduPilotPlugin.dir/src/Util.cc.o: ../src/Util.cc \
 
 /usr/include/gz/math7/gz/math/Ellipsoid.hh:
 
+/usr/include/gz/sdformat14/sdf/Geometry.hh:
+
+/usr/include/gz/sdformat14/sdf/Ellipsoid.hh:
+
+/usr/include/gz/msgs10/gz/msgs/laserscan.pb.h:
+
+/usr/include/gz/sdformat14/sdf/Cylinder.hh:
+
 /usr/include/c++/11/pstl/execution_defs.h:
 
 /usr/include/c++/11/bits/stl_algo.h:
@@ -2416,10 +2426,6 @@ CMakeFiles/ArduPilotPlugin.dir/src/Util.cc.o: ../src/Util.cc \
 
 /usr/include/google/protobuf/generated_message_reflection.h:
 
-/usr/include/x86_64-linux-gnu/bits/types/__FILE.h:
-
-/usr/include/c++/11/backward/auto_ptr.h:
-
 /usr/include/gz/msgs10/gz/msgs/details/float.pb.h:
 
 /usr/include/gz/msgs10/gz/msgs/planegeom.pb.h:
@@ -2575,6 +2581,12 @@ CMakeFiles/ArduPilotPlugin.dir/src/Util.cc.o: ../src/Util.cc \
 /usr/include/gz/math7/gz/math/Pose3.hh:
 
 /usr/include/c++/11/bits/atomic_base.h:
+
+/usr/include/x86_64-linux-gnu/bits/types/__FILE.h:
+
+/usr/include/c++/11/backward/auto_ptr.h:
+
+/usr/include/gz/math7/gz/math/detail/WetVolume.hh:
 
 /usr/include/x86_64-linux-gnu/bits/sigstack.h:
 
@@ -3024,10 +3036,6 @@ CMakeFiles/ArduPilotPlugin.dir/src/Util.cc.o: ../src/Util.cc \
 
 /usr/include/gz/sdformat14/sdf/SDFImpl.hh:
 
-/usr/include/gz/math7/gz/math/Sphere.hh:
-
-/usr/include/c++/11/streambuf:
-
 /usr/include/gz/msgs10/gz/msgs/actor.pb.h:
 
 /usr/include/c++/11/cwctype:
@@ -3242,10 +3250,6 @@ CMakeFiles/ArduPilotPlugin.dir/src/Util.cc.o: ../src/Util.cc \
 
 /usr/include/google/protobuf/stubs/callback.h:
 
-/usr/include/gz/math7/gz/math/detail/Sphere.hh:
-
-/usr/include/c++/11/cassert:
-
 /usr/include/gz/msgs10/gz/msgs/details/ellipsoidgeom.pb.h:
 
 /usr/include/gz/msgs10/gz/msgs/header.pb.h:
@@ -3402,10 +3406,6 @@ CMakeFiles/ArduPilotPlugin.dir/src/Util.cc.o: ../src/Util.cc \
 
 /usr/include/gz/msgs10/gz/msgs/details/parameter_declaration.pb.h:
 
-/usr/include/gz/msgs10/gz/msgs/laserscan.pb.h:
-
-/usr/include/gz/sdformat14/sdf/Cylinder.hh:
-
 /usr/include/gz/transport13/gz/transport/config.hh:
 
 /usr/include/gz/msgs10/gz/msgs/details/plugin_v.pb.h:
@@ -3534,16 +3534,16 @@ CMakeFiles/ArduPilotPlugin.dir/src/Util.cc.o: ../src/Util.cc \
 
 /usr/include/gz/math7/gz/math/Plane.hh:
 
-/usr/include/gz/msgs10/gz/msgs/density.pb.h:
-
-/usr/include/gz/math7/gz/math/Triangle3.hh:
-
 /usr/include/gz/sdformat14/sdf/Capsule.hh:
+
+/usr/include/c++/11/streambuf:
+
+/usr/include/gz/math7/gz/math/Sphere.hh:
+
+/usr/include/c++/11/cassert:
+
+/usr/include/gz/math7/gz/math/detail/Sphere.hh:
 
 /usr/include/c++/11/tr1/legendre_function.tcc:
 
 /usr/include/gz/sdformat14/sdf/Cone.hh:
-
-/usr/include/gz/sdformat14/sdf/Geometry.hh:
-
-/usr/include/gz/sdformat14/sdf/Ellipsoid.hh:

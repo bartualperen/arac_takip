@@ -451,18 +451,20 @@ CMakeFiles/ArduPilotPlugin.dir/src/ArduPilotPlugin.cc.o: \
  /usr/include/gz/math7/gz/math/Line2.hh \
  /usr/include/gz/math7/gz/math/detail/WellOrderedVector.hh \
  /usr/include/gz/math7/gz/math/detail/Box.hh \
- /usr/include/gz/math7/gz/math/Triangle3.hh \
  /usr/include/gz/sdformat14/sdf/Camera.hh \
  /usr/include/gz/sdformat14/sdf/Capsule.hh \
  /usr/include/gz/math7/gz/math/Capsule.hh \
  /usr/include/gz/math7/gz/math/detail/Capsule.hh \
+ /usr/include/gz/math7/gz/math/Cylinder.hh \
+ /usr/include/gz/math7/gz/math/detail/Cylinder.hh \
+ /usr/include/gz/math7/gz/math/detail/WetVolume.hh \
+ /usr/include/gz/math7/gz/math/Sphere.hh \
+ /usr/include/gz/math7/gz/math/detail/Sphere.hh \
  /usr/include/gz/sdformat14/sdf/Collision.hh \
  /usr/include/gz/sdformat14/sdf/Cone.hh \
  /usr/include/gz/math7/gz/math/Cone.hh \
  /usr/include/gz/math7/gz/math/detail/Cone.hh \
  /usr/include/gz/sdformat14/sdf/Cylinder.hh \
- /usr/include/gz/math7/gz/math/Cylinder.hh \
- /usr/include/gz/math7/gz/math/detail/Cylinder.hh \
  /usr/include/gz/sdformat14/sdf/Ellipsoid.hh \
  /usr/include/gz/math7/gz/math/Ellipsoid.hh \
  /usr/include/gz/math7/gz/math/detail/Ellipsoid.hh \
@@ -493,8 +495,6 @@ CMakeFiles/ArduPilotPlugin.dir/src/ArduPilotPlugin.cc.o: \
  /usr/include/gz/sdformat14/sdf/Sky.hh \
  /usr/include/gz/sdformat14/sdf/Sensor.hh \
  /usr/include/gz/sdformat14/sdf/Sphere.hh \
- /usr/include/gz/math7/gz/math/Sphere.hh \
- /usr/include/gz/math7/gz/math/detail/Sphere.hh \
  /usr/include/gz/sdformat14/sdf/Surface.hh \
  /usr/include/gz/sdformat14/sdf/Visual.hh \
  /usr/include/gz/sdformat14/sdf/World.hh \

@@ -92,7 +92,7 @@ ParachutePlugin_EXTERNAL_OBJECTS =
 
 libParachutePlugin.so: CMakeFiles/ParachutePlugin.dir/src/ParachutePlugin.cc.o
 libParachutePlugin.so: CMakeFiles/ParachutePlugin.dir/build.make
-libParachutePlugin.so: /usr/lib/x86_64-linux-gnu/libgz-sim8.so.8.10.0
+libParachutePlugin.so: /usr/lib/x86_64-linux-gnu/libgz-sim8.so.8.11.0
 libParachutePlugin.so: /usr/lib/x86_64-linux-gnu/libgz-fuel_tools9.so.9.1.1
 libParachutePlugin.so: /usr/lib/x86_64-linux-gnu/libgz-gui8.so.8.4.0
 libParachutePlugin.so: /usr/lib/x86_64-linux-gnu/libgz-plugin2-loader.so.2.0.4
@@ -133,7 +133,7 @@ libParachutePlugin.so: /usr/lib/x86_64-linux-gnu/libgz-msgs10.so.10.3.2
 libParachutePlugin.so: /usr/lib/x86_64-linux-gnu/libtinyxml2.so
 libParachutePlugin.so: /usr/lib/x86_64-linux-gnu/libtinyxml2.so
 libParachutePlugin.so: /usr/lib/x86_64-linux-gnu/libsdformat14.so.14.9.0
-libParachutePlugin.so: /usr/lib/x86_64-linux-gnu/libgz-math7.so.7.5.1
+libParachutePlugin.so: /usr/lib/x86_64-linux-gnu/libgz-math7.so.7.6.0
 libParachutePlugin.so: /usr/lib/x86_64-linux-gnu/libgz-utils2.so.2.2.1
 libParachutePlugin.so: /usr/lib/x86_64-linux-gnu/libprotobuf.so
 libParachutePlugin.so: CMakeFiles/ParachutePlugin.dir/link.txt

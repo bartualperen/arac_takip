@@ -92,7 +92,7 @@ CameraZoomPlugin_EXTERNAL_OBJECTS =
 
 libCameraZoomPlugin.so: CMakeFiles/CameraZoomPlugin.dir/src/CameraZoomPlugin.cc.o
 libCameraZoomPlugin.so: CMakeFiles/CameraZoomPlugin.dir/build.make
-libCameraZoomPlugin.so: /usr/lib/x86_64-linux-gnu/libgz-sim8.so.8.10.0
+libCameraZoomPlugin.so: /usr/lib/x86_64-linux-gnu/libgz-sim8.so.8.11.0
 libCameraZoomPlugin.so: /usr/lib/x86_64-linux-gnu/libgz-fuel_tools9.so.9.1.1
 libCameraZoomPlugin.so: /usr/lib/x86_64-linux-gnu/libgz-gui8.so.8.4.0
 libCameraZoomPlugin.so: /usr/lib/x86_64-linux-gnu/libgz-plugin2-loader.so.2.0.4
@@ -133,7 +133,7 @@ libCameraZoomPlugin.so: /usr/lib/x86_64-linux-gnu/libgz-msgs10.so.10.3.2
 libCameraZoomPlugin.so: /usr/lib/x86_64-linux-gnu/libtinyxml2.so
 libCameraZoomPlugin.so: /usr/lib/x86_64-linux-gnu/libtinyxml2.so
 libCameraZoomPlugin.so: /usr/lib/x86_64-linux-gnu/libsdformat14.so.14.9.0
-libCameraZoomPlugin.so: /usr/lib/x86_64-linux-gnu/libgz-math7.so.7.5.1
+libCameraZoomPlugin.so: /usr/lib/x86_64-linux-gnu/libgz-math7.so.7.6.0
 libCameraZoomPlugin.so: /usr/lib/x86_64-linux-gnu/libgz-utils2.so.2.2.1
 libCameraZoomPlugin.so: /usr/lib/x86_64-linux-gnu/libprotobuf.so
 libCameraZoomPlugin.so: CMakeFiles/CameraZoomPlugin.dir/link.txt

@@ -4,6 +4,7 @@ services:
       context: .
       dockerfile: docker/Dockerfile
     container_name: tubitak_drone_sim
+    restart: unless-stopped
     stdin_open: true
     tty: true
     privileged: true
@@ -12,8 +13,10 @@ services:
     environment:
       - DISPLAY=${DISPLAY}
       - QT_X11_NO_MITSHM=1
-      - NVIDIA_VISIBLE_DEVICES=all
       - LIBGL_ALWAYS_SOFTWARE=0
+      - HSA_OVERRIDE_GFX_VERSION=10.3.0
+      - PYTORCH_ROCM_ARCH=gfx1030
+      - HIP_VISIBLE_DEVICES=0
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
       - ~/.Xauthority:/home/droneuser/.Xauthority:rw
