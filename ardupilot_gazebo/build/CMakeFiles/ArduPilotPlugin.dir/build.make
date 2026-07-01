@@ -124,7 +124,7 @@ libArduPilotPlugin.so: CMakeFiles/ArduPilotPlugin.dir/src/ArduPilotPlugin.cc.o
 libArduPilotPlugin.so: CMakeFiles/ArduPilotPlugin.dir/src/SocketUDP.cc.o
 libArduPilotPlugin.so: CMakeFiles/ArduPilotPlugin.dir/src/Util.cc.o
 libArduPilotPlugin.so: CMakeFiles/ArduPilotPlugin.dir/build.make
-libArduPilotPlugin.so: /usr/lib/x86_64-linux-gnu/libgz-sim8.so.8.11.0
+libArduPilotPlugin.so: /usr/lib/x86_64-linux-gnu/libgz-sim8.so.8.14.0
 libArduPilotPlugin.so: /usr/lib/x86_64-linux-gnu/libgz-fuel_tools9.so.9.1.1
 libArduPilotPlugin.so: /usr/lib/x86_64-linux-gnu/libgz-gui8.so.8.4.0
 libArduPilotPlugin.so: /usr/lib/x86_64-linux-gnu/libgz-plugin2-loader.so.2.0.4
@@ -136,7 +136,7 @@ libArduPilotPlugin.so: /usr/lib/x86_64-linux-gnu/libQt5Network.so.5.15.3
 libArduPilotPlugin.so: /usr/lib/x86_64-linux-gnu/libQt5Widgets.so.5.15.3
 libArduPilotPlugin.so: /usr/lib/x86_64-linux-gnu/libQt5Gui.so.5.15.3
 libArduPilotPlugin.so: /usr/lib/x86_64-linux-gnu/libQt5Core.so.5.15.3
-libArduPilotPlugin.so: /usr/lib/x86_64-linux-gnu/libgz-physics7.so.7.6.0
+libArduPilotPlugin.so: /usr/lib/x86_64-linux-gnu/libgz-physics7.so.7.8.0
 libArduPilotPlugin.so: /usr/lib/x86_64-linux-gnu/libgz-plugin2.so.2.0.4
 libArduPilotPlugin.so: /usr/lib/x86_64-linux-gnu/libgz-rendering8.so.8.2.3
 libArduPilotPlugin.so: /usr/lib/x86_64-linux-gnu/libgz-common5-profiler.so.5.8.0

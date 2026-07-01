@@ -92,7 +92,7 @@ CameraZoomPlugin_EXTERNAL_OBJECTS =
 
 libCameraZoomPlugin.so: CMakeFiles/CameraZoomPlugin.dir/src/CameraZoomPlugin.cc.o
 libCameraZoomPlugin.so: CMakeFiles/CameraZoomPlugin.dir/build.make
-libCameraZoomPlugin.so: /usr/lib/x86_64-linux-gnu/libgz-sim8.so.8.11.0
+libCameraZoomPlugin.so: /usr/lib/x86_64-linux-gnu/libgz-sim8.so.8.14.0
 libCameraZoomPlugin.so: /usr/lib/x86_64-linux-gnu/libgz-fuel_tools9.so.9.1.1
 libCameraZoomPlugin.so: /usr/lib/x86_64-linux-gnu/libgz-gui8.so.8.4.0
 libCameraZoomPlugin.so: /usr/lib/x86_64-linux-gnu/libgz-plugin2-loader.so.2.0.4
@@ -104,7 +104,7 @@ libCameraZoomPlugin.so: /usr/lib/x86_64-linux-gnu/libQt5Network.so.5.15.3
 libCameraZoomPlugin.so: /usr/lib/x86_64-linux-gnu/libQt5Widgets.so.5.15.3
 libCameraZoomPlugin.so: /usr/lib/x86_64-linux-gnu/libQt5Gui.so.5.15.3
 libCameraZoomPlugin.so: /usr/lib/x86_64-linux-gnu/libQt5Core.so.5.15.3
-libCameraZoomPlugin.so: /usr/lib/x86_64-linux-gnu/libgz-physics7.so.7.6.0
+libCameraZoomPlugin.so: /usr/lib/x86_64-linux-gnu/libgz-physics7.so.7.8.0
 libCameraZoomPlugin.so: /usr/lib/x86_64-linux-gnu/libgz-plugin2.so.2.0.4
 libCameraZoomPlugin.so: /usr/lib/x86_64-linux-gnu/libgz-rendering8.so.8.2.3
 libCameraZoomPlugin.so: /usr/lib/x86_64-linux-gnu/libgz-common5-events.so.5.8.0

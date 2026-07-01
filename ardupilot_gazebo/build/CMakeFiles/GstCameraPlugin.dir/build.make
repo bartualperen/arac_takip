@@ -92,7 +92,7 @@ GstCameraPlugin_EXTERNAL_OBJECTS =
 
 libGstCameraPlugin.so: CMakeFiles/GstCameraPlugin.dir/src/GstCameraPlugin.cc.o
 libGstCameraPlugin.so: CMakeFiles/GstCameraPlugin.dir/build.make
-libGstCameraPlugin.so: /usr/lib/x86_64-linux-gnu/libgz-sim8.so.8.11.0
+libGstCameraPlugin.so: /usr/lib/x86_64-linux-gnu/libgz-sim8.so.8.14.0
 libGstCameraPlugin.so: /usr/lib/x86_64-linux-gnu/libopencv_stitching.so.4.5.4d
 libGstCameraPlugin.so: /usr/lib/x86_64-linux-gnu/libopencv_alphamat.so.4.5.4d
 libGstCameraPlugin.so: /usr/lib/x86_64-linux-gnu/libopencv_aruco.so.4.5.4d
@@ -144,7 +144,7 @@ libGstCameraPlugin.so: /usr/lib/x86_64-linux-gnu/libQt5Network.so.5.15.3
 libGstCameraPlugin.so: /usr/lib/x86_64-linux-gnu/libQt5Widgets.so.5.15.3
 libGstCameraPlugin.so: /usr/lib/x86_64-linux-gnu/libQt5Gui.so.5.15.3
 libGstCameraPlugin.so: /usr/lib/x86_64-linux-gnu/libQt5Core.so.5.15.3
-libGstCameraPlugin.so: /usr/lib/x86_64-linux-gnu/libgz-physics7.so.7.6.0
+libGstCameraPlugin.so: /usr/lib/x86_64-linux-gnu/libgz-physics7.so.7.8.0
 libGstCameraPlugin.so: /usr/lib/x86_64-linux-gnu/libgz-plugin2.so.2.0.4
 libGstCameraPlugin.so: /usr/lib/x86_64-linux-gnu/libgz-rendering8.so.8.2.3
 libGstCameraPlugin.so: /usr/lib/x86_64-linux-gnu/libgz-common5-profiler.so.5.8.0
