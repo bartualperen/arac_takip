@@ -264,7 +264,7 @@
     </model>
 
     <model name="prius_hybrid">
-        <static>true</static>
+        <static>false</static>
         <pose>278.08 -134.22 2.86 0.02 0 0.97</pose>
         <link name="chassis">
             <inertial>
@@ -319,7 +319,7 @@
                 <pose>0.0 0.05 0.625 0 0 0</pose>
                 <geometry>
                     <box>
-                        <size>1.8 4.5 1.5</size>
+                        <size>1.8 4.5 0.95</size>
                     </box>
                 </geometry>
             </collision>
@@ -812,8 +812,8 @@
       </joint>
 
         <plugin
-          filename="ignition-gazebo-ackermann-steering-system"
-          name="ignition::gazebo::systems::AckermannSteering">
+          filename="gz-sim-ackermann-steering-system"
+          name="gz::sim::systems::AckermannSteering">
           <topic>/cmd_vel</topic>
           <left_joint>front_left_wheel_joint</left_joint>
           <left_joint>rear_left_wheel_joint</left_joint>

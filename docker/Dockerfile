@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y \
     lsb-release \
     sudo \
     git \
-    python3-pip \
+    python3-pip \d
     python3-venv \
     python3-dev \
     wget \
@@ -21,7 +21,7 @@ RUN apt-get update && apt-get install -y \
     tzdata \
     locales \
     cmake \
-    build-essential \
+    build-essential \d
     gnupg \
     && add-apt-repository universe \
     && add-apt-repository multiverse \

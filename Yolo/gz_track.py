@@ -24,6 +24,8 @@ import time
 import os
 import sys
 
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+
 # gz/ROS binding'leri icin sistem Python path'i lazim, ama NumPy/Torch/TensorFlow
 # paketleri venv'den gelmeli. Bu ayar, herhangi bir ucuncu parti C eklentisi
 # yuklenmeden once yapilmali; aksi halde eski sistem NumPy'si bellekte kalabilir.
@@ -52,7 +54,9 @@ from tensorflow.keras.models import Model
 from sklearn.metrics.pairwise import cosine_similarity
 
 # --- SORT ---
-sys.path.append("./sort")
+SORT_DIR = os.path.join(SCRIPT_DIR, "sort")
+if SORT_DIR not in sys.path:
+    sys.path.append(SORT_DIR)
 from sort import Sort
 
 # --- GAZEBO ---
@@ -290,12 +294,12 @@ class GimbalController:
 
 
 class TakipController:
-    def __init__(self, frame_w, frame_h, kp_yatay=0.42, ki_yatay=0.18,
-                 max_yatay_vel=0.50, deadzone_px=18, takip_irtifasi=None,
-                 kp_alt=0.5, max_dikey_vel=1.0, err_alpha=0.22,
-                 err_zero_alpha=0.55, vel_alpha=0.35, max_accel=0.35,
-                 max_decel=0.85, min_vel=0.012, min_duzeltme_hizi=0.075,
-                 komut_deadband_norm=0.010, integral_limit=0.8):
+    def __init__(self, frame_w, frame_h, kp_yatay=0.58, ki_yatay=0.12,
+                 max_yatay_vel=0.85, deadzone_px=12, takip_irtifasi=None,
+                 kp_alt=0.5, max_dikey_vel=1.0, err_alpha=0.36,
+                 err_zero_alpha=0.65, vel_alpha=0.55, max_accel=1.10,
+                 max_decel=1.80, min_vel=0.010, min_duzeltme_hizi=0.11,
+                 komut_deadband_norm=0.006, integral_limit=0.65):
         self.cx = frame_w / 2.0
         self.cy = frame_h / 2.0
         self.kp_yatay = kp_yatay
@@ -413,17 +417,24 @@ class TakipController:
 # ============================================================
 def main():
     TOPIC_NAME = "/world/sonoma/model/iris_with_gimbal/model/gimbal/link/pitch_link/sensor/camera/image"
-    HEDEF_GORSEL = "./track_nadir.png"
-    MODEL_PATH = "./best.pt"
+    HEDEF_GORSEL = os.path.join(SCRIPT_DIR, "track_nadir.png")
+    MODEL_PATH = os.path.join(SCRIPT_DIR, "best.pt")
 
     BAGLANTI_STR = "udp:127.0.0.1:14550"
     TAKIP_IRTIFASI = None
-    DRONE_SEND_INTERVAL = 0.1
-    MAX_YATAY_HIZ = 0.50
+    DRONE_SEND_INTERVAL = 0.05
+    MAX_YATAY_HIZ = 0.85
     MAX_DIKEY_HIZ = 1.0
-    KP_MERKEZLEME = 0.42
-    KI_MERKEZLEME = 0.18
-    MERKEZ_DEADZONE_PX = 18
+    KP_MERKEZLEME = 0.58
+    KI_MERKEZLEME = 0.12
+    MERKEZ_DEADZONE_PX = 12
+
+    HATA_FILTRE_ALPHA = 0.36
+    HIZ_FILTRE_ALPHA = 0.55
+    MAX_IVMELENME = 1.10
+    MAX_YAVASLAMA = 1.80
+    MIN_DUZELTME_HIZI = 0.11
+    KOMUT_DEADBAND_NORM = 0.006
 
     GIMBAL_AKTIF = True
     GIMBAL_TAKIP_AKTIF = False
@@ -484,6 +495,12 @@ def main():
                     deadzone_px=MERKEZ_DEADZONE_PX,
                     takip_irtifasi=TAKIP_IRTIFASI,
                     max_dikey_vel=MAX_DIKEY_HIZ,
+                    err_alpha=HATA_FILTRE_ALPHA,
+                    vel_alpha=HIZ_FILTRE_ALPHA,
+                    max_accel=MAX_IVMELENME,
+                    max_decel=MAX_YAVASLAMA,
+                    min_duzeltme_hizi=MIN_DUZELTME_HIZI,
+                    komut_deadband_norm=KOMUT_DEADBAND_NORM,
                 )
 
             frame_counter += 1
