@@ -149,6 +149,8 @@ class DroneController:
         print(f"[DRONE] Bağlantı OK. Mod: {self.vehicle.mode.name}, armed: {self.vehicle.armed}")
         self.send_interval = send_interval
         self._last_send = 0.0
+        self._last_yaw_send = 0.0
+        self.yaw_send_interval = 0.5
 
     def guided_moda_gec(self):
         if self.vehicle.mode.name != "GUIDED":
@@ -164,31 +166,43 @@ class DroneController:
         except Exception:
             return None
 
-    def send_body_velocity(self, vx, vy, vz, yaw_rate=0.0, force=False):
+    def yaw_ile_don(self, aci_derece, hiz_derece_sn=30, yon=1, relative=True):
+        """
+        aci_derece: relative=True ise dönülecek açı miktarı (+ sağa/saat yönü, - sola)
+                    relative=False ise mutlak hedef heading
+        """
+        now = time.time()
+        if now - self._last_yaw_send < self.yaw_send_interval:
+            return
+        self._last_yaw_send = now
+
+        self.vehicle.message_factory
+        self.vehicle._master.mav.command_long_send(
+            self.vehicle._master.target_system,
+            self.vehicle._master.target_component,
+            mavutil.mavlink.MAV_CMD_CONDITION_YAW,
+            0,
+            abs(aci_derece),
+            hiz_derece_sn,
+            1 if aci_derece >= 0 else -1,
+            1 if relative else 0,
+            0, 0, 0
+        )
+
+
+    def send_body_velocity(self, vx, vy, vz, force=False):
         now = time.time()
         if not force and (now - self._last_send) < self.send_interval:
             return
         self._last_send = now
 
-        X_IGNORE        = 1     # bit0
-        Y_IGNORE        = 2     # bit1
-        Z_IGNORE        = 4     # bit2
-        VX_IGNORE       = 8     # bit3
-        VY_IGNORE       = 16    # bit4
-        VZ_IGNORE       = 32    # bit5
-        AX_IGNORE       = 64    # bit6
-        AY_IGNORE       = 128   # bit7
-        AZ_IGNORE       = 256   # bit8
-        # bit9 (FORCE_SET) KESİNLİKLE dahil edilmeyecek - ArduCopter'da desteklenmiyor
-        YAW_IGNORE      = 1024  # bit10
-        YAW_RATE_IGNORE = 2048  # bit11
+        X_IGNORE=1; Y_IGNORE=2; Z_IGNORE=4; VY_IGNORE=16
+        AX_IGNORE=64; AY_IGNORE=128; AZ_IGNORE=256
+        YAW_IGNORE=1024; YAW_RATE_IGNORE=2048
 
-        # pozisyon yoksay, VY yoksay (yanal kaymayı istemiyoruz), ivme yoksay, yaw yoksay
-        # VX, VZ ve YAW_RATE aktif kullanılıyor (maskeye dahil EDİLMİYOR)
-        type_mask = (X_IGNORE | Y_IGNORE | Z_IGNORE |
-                    VY_IGNORE |
-                    AX_IGNORE | AY_IGNORE | AZ_IGNORE |
-                    YAW_IGNORE)
+        type_mask = (X_IGNORE|Y_IGNORE|Z_IGNORE|VY_IGNORE|
+                    AX_IGNORE|AY_IGNORE|AZ_IGNORE|
+                    YAW_IGNORE|YAW_RATE_IGNORE)
 
         msg = self.vehicle.message_factory.set_position_target_local_ned_encode(
             0, 0, 0,
@@ -197,7 +211,7 @@ class DroneController:
             0, 0, 0,
             vx, 0.0, vz,
             0, 0, 0,
-            0, yaw_rate)
+            0, 0)
         self.vehicle.send_mavlink(msg)
         self.vehicle.flush()
 
@@ -214,16 +228,18 @@ class DroneController:
 import math
 
 class TakipController:
-    def __init__(self, frame_w, frame_h, kp_forward=0.004, kp_yaw=0.0025,
-                 max_forward_vel=1.0, max_yaw_rate=0.5, deadzone_px=20,
+    def __init__(self, frame_w, frame_h, kp_forward=0.004, kp_yaw_derece=0.05,
+                 max_forward_vel=1.0, max_aci_derece=15, deadzone_px=20,
                  takip_irtifasi=None, kp_alt=0.5, max_dikey_vel=1.0,
                  kamera_yaw_ofseti_derece=-90.0):
         self.cx = frame_w / 2.0
         self.cy = frame_h / 2.0
         self.kp_forward = kp_forward
-        self.kp_yaw = kp_yaw
+        #self.kp_yaw = kp_yaw
+        self.kp_yaw_derece = kp_yaw_derece
+        self.max_aci_derece = max_aci_derece
         self.max_forward_vel = max_forward_vel
-        self.max_yaw_rate = max_yaw_rate
+        #self.max_yaw_rate = max_yaw_rate
         self.deadzone_px = deadzone_px
         self.takip_irtifasi = takip_irtifasi
         self.kp_alt = kp_alt
@@ -238,32 +254,28 @@ class TakipController:
         x1, y1, x2, y2 = bbox
         bx, by = (x1 + x2) / 2.0, (y1 + y2) / 2.0
 
-        err_x = bx - self.cx   # yatay sapma -> dönüş (yaw)
-        err_y = by - self.cy   # dikey sapma -> ileri hız
+        err_x = bx - self.cx
+        err_y = by - self.cy
 
         if abs(err_x) < self.deadzone_px:
             err_x = 0
         if abs(err_y) < self.deadzone_px:
             err_y = 0
 
-        # daha önce kalibre ettiğiniz kamera montaj ofsetini burada da uyguluyoruz
         err_ileri, err_yanal = self._ofset_uygula(err_y, err_x)
 
-        yaw_rate = self._clamp(err_yanal * self.kp_yaw, self.max_yaw_rate)
+        # yaw_rate yerine: bu adımda kaç derece dönülmesi gerektiğini hesapla
+        aci_derece = self._clamp(err_yanal * self.kp_yaw_derece, self.max_aci_derece)
 
-        # keskin dönüş sırasında ileri hızı azalt (overshoot'u engellemek için)
-        donus_orani = min(1.0, abs(yaw_rate) / self.max_yaw_rate) if self.max_yaw_rate else 0
-        forward_carpan = 1.0 - 0.6 * donus_orani   # keskin dönüşte hız ~%40'a düşer
-
-        vx = self._clamp(err_ileri * self.kp_forward, self.max_forward_vel) * forward_carpan
-        vx = max(vx, 0.0)   # geri gitmesin, sadece dur veya ileri gitsin
+        vx = self._clamp(err_ileri * self.kp_forward, self.max_forward_vel)
+        vx = max(vx, 0.0)
 
         vz = 0.0
         if self.takip_irtifasi is not None and mevcut_irtifa is not None:
             alt_hata = self.takip_irtifasi - mevcut_irtifa
             vz = self._clamp(-alt_hata * self.kp_alt, self.max_dikey_vel)
 
-        return vx, vz, yaw_rate
+        return vx, vz, aci_derece
 
     @staticmethod
     def _clamp(v, limit):
@@ -326,7 +338,8 @@ def main():
                 takip_ctrl = TakipController(
                     frame_w=w, frame_h=h,
                     max_forward_vel=1.0,
-                    max_yaw_rate=0.4,          # rad/s, çok agresif dönmesin diye düşük başlayın
+                    kp_yaw_derece=0.05,
+                    max_aci_derece=15,
                     takip_irtifasi=TAKIP_IRTIFASI,
                     max_dikey_vel=MAX_DIKEY_HIZ,
                     kamera_yaw_ofseti_derece=-90.0,
@@ -396,12 +409,13 @@ def main():
                         if sistem_durumu['baslatildi']:
                             drone.guided_moda_gec()
                             mevcut_irtifa = drone.mevcut_irtifa()
-                            vx, vz, yaw_rate = takip_ctrl.hesapla_yonelerek([x1, y1, x2, y2], mevcut_irtifa=mevcut_irtifa)
-                            print(f"[DEBUG] gönderiliyor -> vx={vx:.3f} vz={vz:.3f} yaw_rate={yaw_rate:.3f} "
-                                  f"| mod={drone.vehicle.mode.name} armed={drone.vehicle.armed}")
-                            drone.send_body_velocity(vx, 0, vz, yaw_rate=yaw_rate)
-                            cv2.putText(frame, f"vx:{vx:+.2f} yaw_rate:{yaw_rate:+.2f} vz:{vz:+.2f}",
-                                        (10, 90), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 255), 2)
+                            vx, vz, aci_derece = takip_ctrl.hesapla_yonelerek([x1, y1, x2, y2], mevcut_irtifa=mevcut_irtifa)
+
+                            drone.send_body_velocity(vx, 0, vz)   # artık yaw_rate parametresi yok, sadece vx/vz
+                            if abs(aci_derece) > 1.0:             # çok küçük açılarda gereksiz komut göndermeyelim
+                                drone.yaw_ile_don(aci_derece, hiz_derece_sn=25)
+
+                            print(f"[DEBUG] vx={vx:.3f} vz={vz:.3f} aci={aci_derece:.2f}")
                         break
 
                 # --- EKSİK OLAN KISIM: kilit kaybını takip et ve sıfırla ---
