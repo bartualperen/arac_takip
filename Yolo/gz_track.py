@@ -20,11 +20,21 @@ Bu, bizim senaryomuzda "hedefi bulduktan sonra bbox'ın sağlam kalması" için 
 - ./sort dizininde SORT reposu klonlanmış olmalı (sort.py içeren).
 """
 
-import cv2
-import numpy as np
 import time
 import os
 import sys
+
+# gz/ROS binding'leri icin sistem Python path'i lazim, ama NumPy/Torch/TensorFlow
+# paketleri venv'den gelmeli. Bu ayar, herhangi bir ucuncu parti C eklentisi
+# yuklenmeden once yapilmali; aksi halde eski sistem NumPy'si bellekte kalabilir.
+_VENV_SITE = "/opt/venv/lib/python3.10/site-packages"
+if os.path.isdir(_VENV_SITE):
+    if _VENV_SITE in sys.path:
+        sys.path.remove(_VENV_SITE)
+    sys.path.insert(1 if sys.path else 0, _VENV_SITE)
+
+import cv2
+import numpy as np
 
 # --- dronekit'in eski collections API beklentisi için uyumluluk yaması (Python 3.10+) ---
 import collections
@@ -48,6 +58,7 @@ from sort import Sort
 # --- GAZEBO ---
 from gz.transport13 import Node
 from gz.msgs10.image_pb2 import Image as GZImage
+from gz.msgs10.double_pb2 import Double as GZDouble
 
 # --- OTOPİLOT ---
 from dronekit import connect, VehicleMode
@@ -190,26 +201,26 @@ class DroneController:
         )
 
 
-    def send_body_velocity(self, vx, vy, vz, force=False):
+    def send_body_velocity(self, vx, vy, vz=0.0, force=False):
         now = time.time()
         if not force and (now - self._last_send) < self.send_interval:
             return
         self._last_send = now
 
-        X_IGNORE=1; Y_IGNORE=2; Z_IGNORE=4; VY_IGNORE=16
+        X_IGNORE=1; Y_IGNORE=2; Z_IGNORE=4
         AX_IGNORE=64; AY_IGNORE=128; AZ_IGNORE=256
         YAW_IGNORE=1024; YAW_RATE_IGNORE=2048
 
-        type_mask = (X_IGNORE|Y_IGNORE|Z_IGNORE|VY_IGNORE|
+        type_mask = (X_IGNORE|Y_IGNORE|Z_IGNORE|
                     AX_IGNORE|AY_IGNORE|AZ_IGNORE|
                     YAW_IGNORE|YAW_RATE_IGNORE)
 
         msg = self.vehicle.message_factory.set_position_target_local_ned_encode(
             0, 0, 0,
-            mavutil.mavlink.MAV_FRAME_BODY_OFFSET_NED,
+            mavutil.mavlink.MAV_FRAME_BODY_NED,
             type_mask,
             0, 0, 0,
-            vx, 0.0, vz,
+            float(vx), float(vy), float(vz),
             0, 0, 0,
             0, 0)
         self.vehicle.send_mavlink(msg)
@@ -225,57 +236,173 @@ class DroneController:
             pass
         self.vehicle.close()
 
-import math
+
+class GimbalController:
+    def __init__(self, pitch_baslangic=-0.785, yaw_baslangic=0.0,
+                 pitch_min=-1.57, pitch_max=-0.3, yaw_max=0.6,
+                 kp_pitch=0.25, kp_yaw=0.35, send_interval=0.05):
+        self.node = Node()
+        self._pub_pitch = self.node.advertise('/gimbal/cmd_pitch', GZDouble)
+        self._pub_yaw = self.node.advertise('/gimbal/cmd_yaw', GZDouble)
+        self.pitch_baslangic = pitch_baslangic
+        self.yaw_baslangic = yaw_baslangic
+        self.pitch = pitch_baslangic
+        self.yaw = yaw_baslangic
+        self.pitch_min = pitch_min
+        self.pitch_max = pitch_max
+        self.yaw_max = yaw_max
+        self.kp_pitch = kp_pitch
+        self.kp_yaw = kp_yaw
+        self.send_interval = send_interval
+        self._last_send = 0.0
+        self._send(force=True)
+
+    def _send(self, force=False):
+        now = time.time()
+        if not force and (now - self._last_send) < self.send_interval:
+            return
+        self._last_send = now
+
+        pitch_msg = GZDouble()
+        yaw_msg = GZDouble()
+        pitch_msg.data = float(self.pitch)
+        yaw_msg.data = float(self.yaw)
+        self._pub_pitch.publish(pitch_msg)
+        self._pub_yaw.publish(yaw_msg)
+
+    def update(self, err_x_norm, err_y_norm, dt):
+        self.yaw = float(np.clip(
+            self.yaw + self.kp_yaw * err_x_norm * dt,
+            -self.yaw_max,
+            self.yaw_max,
+        ))
+        self.pitch = float(np.clip(
+            self.pitch - self.kp_pitch * err_y_norm * dt,
+            self.pitch_min,
+            self.pitch_max,
+        ))
+        self._send()
+
+    def reset(self):
+        self.pitch = self.pitch_baslangic
+        self.yaw = self.yaw_baslangic
+        self._send(force=True)
+
 
 class TakipController:
-    def __init__(self, frame_w, frame_h, kp_forward=0.004, kp_yaw_derece=0.05,
-                 max_forward_vel=1.0, max_aci_derece=15, deadzone_px=20,
-                 takip_irtifasi=None, kp_alt=0.5, max_dikey_vel=1.0,
-                 kamera_yaw_ofseti_derece=-90.0):
+    def __init__(self, frame_w, frame_h, kp_yatay=0.42, ki_yatay=0.18,
+                 max_yatay_vel=0.50, deadzone_px=18, takip_irtifasi=None,
+                 kp_alt=0.5, max_dikey_vel=1.0, err_alpha=0.22,
+                 err_zero_alpha=0.55, vel_alpha=0.35, max_accel=0.35,
+                 max_decel=0.85, min_vel=0.012, min_duzeltme_hizi=0.075,
+                 komut_deadband_norm=0.010, integral_limit=0.8):
         self.cx = frame_w / 2.0
         self.cy = frame_h / 2.0
-        self.kp_forward = kp_forward
-        #self.kp_yaw = kp_yaw
-        self.kp_yaw_derece = kp_yaw_derece
-        self.max_aci_derece = max_aci_derece
-        self.max_forward_vel = max_forward_vel
-        #self.max_yaw_rate = max_yaw_rate
+        self.kp_yatay = kp_yatay
+        self.ki_yatay = ki_yatay
+        self.max_yatay_vel = max_yatay_vel
         self.deadzone_px = deadzone_px
         self.takip_irtifasi = takip_irtifasi
         self.kp_alt = kp_alt
         self.max_dikey_vel = max_dikey_vel
-        self.kamera_yaw_ofseti = math.radians(kamera_yaw_ofseti_derece)
+        self.err_alpha = err_alpha
+        self.err_zero_alpha = err_zero_alpha
+        self.vel_alpha = vel_alpha
+        self.max_accel = max_accel
+        self.max_decel = max_decel
+        self.min_vel = min_vel
+        self.min_duzeltme_hizi = min_duzeltme_hizi
+        self.komut_deadband_norm = komut_deadband_norm
+        self.integral_limit = integral_limit
+        self.err_x_filt = 0.0
+        self.err_y_filt = 0.0
+        self.err_x_i = 0.0
+        self.err_y_i = 0.0
+        self.vx = 0.0
+        self.vy = 0.0
+        self.vz = 0.0
 
-    def _ofset_uygula(self, a, b):
-        c, s = math.cos(self.kamera_yaw_ofseti), math.sin(self.kamera_yaw_ofseti)
-        return a * c - b * s, a * s + b * c
-
-    def hesapla_yonelerek(self, bbox, mevcut_irtifa=None):
+    def hesapla_merkezleme(self, bbox, mevcut_irtifa=None, dt=0.1):
         x1, y1, x2, y2 = bbox
         bx, by = (x1 + x2) / 2.0, (y1 + y2) / 2.0
 
         err_x = bx - self.cx
         err_y = by - self.cy
 
-        if abs(err_x) < self.deadzone_px:
-            err_x = 0
-        if abs(err_y) < self.deadzone_px:
-            err_y = 0
+        err_x_norm = self._deadband_norm(err_x, self.cx)
+        err_y_norm = self._deadband_norm(err_y, self.cy)
 
-        err_ileri, err_yanal = self._ofset_uygula(err_y, err_x)
+        dt = max(0.01, min(float(dt), 0.3))
+        alpha_x = self.err_zero_alpha if err_x_norm == 0.0 else self.err_alpha
+        alpha_y = self.err_zero_alpha if err_y_norm == 0.0 else self.err_alpha
+        self.err_x_filt = self._ema(self.err_x_filt, err_x_norm, alpha_x)
+        self.err_y_filt = self._ema(self.err_y_filt, err_y_norm, alpha_y)
+        self.err_x_i = self._integral_guncelle(self.err_x_i, err_x_norm, dt)
+        self.err_y_i = self._integral_guncelle(self.err_y_i, err_y_norm, dt)
 
-        # yaw_rate yerine: bu adımda kaç derece dönülmesi gerektiğini hesapla
-        aci_derece = self._clamp(err_yanal * self.kp_yaw_derece, self.max_aci_derece)
-
-        vx = self._clamp(err_ileri * self.kp_forward, self.max_forward_vel)
-        vx = max(vx, 0.0)
-
-        vz = 0.0
+        kontrol_x = self.kp_yatay * self.err_x_filt + self.ki_yatay * self.err_x_i
+        kontrol_y = self.kp_yatay * self.err_y_filt + self.ki_yatay * self.err_y_i
+        vx_hedef = self._komut_hizi(-kontrol_y)
+        vy_hedef = self._komut_hizi(kontrol_x)
+        vz_hedef = 0.0
         if self.takip_irtifasi is not None and mevcut_irtifa is not None:
             alt_hata = self.takip_irtifasi - mevcut_irtifa
-            vz = self._clamp(-alt_hata * self.kp_alt, self.max_dikey_vel)
+            vz_hedef = self._clamp(-alt_hata * self.kp_alt, self.max_dikey_vel)
 
-        return vx, vz, aci_derece
+        self.vx = self._filtreli_hiz(self.vx, vx_hedef, dt)
+        self.vy = self._filtreli_hiz(self.vy, vy_hedef, dt)
+        self.vz = self._filtreli_hiz(self.vz, vz_hedef, dt)
+
+        return self.vx, self.vy, self.vz, self.err_x_filt, self.err_y_filt
+
+    def reset(self):
+        self.err_x_filt = 0.0
+        self.err_y_filt = 0.0
+        self.err_x_i = 0.0
+        self.err_y_i = 0.0
+        self.vx = 0.0
+        self.vy = 0.0
+        self.vz = 0.0
+
+    def _deadband_norm(self, err_px, half_axis):
+        mag = abs(err_px)
+        if mag <= self.deadzone_px:
+            return 0.0
+        return np.sign(err_px) * min(1.0, mag / half_axis)
+
+    def _integral_guncelle(self, onceki, err_norm, dt):
+        if err_norm == 0.0:
+            decay = max(0.0, 1.0 - 3.0 * dt)
+            return onceki * decay
+        yeni = onceki + err_norm * dt
+        return self._clamp(yeni, self.integral_limit)
+
+    def _komut_hizi(self, kontrol):
+        if abs(kontrol) < self.komut_deadband_norm:
+            return 0.0
+        hiz = self._clamp(kontrol, self.max_yatay_vel)
+        if abs(hiz) < self.min_duzeltme_hizi:
+            return float(np.sign(hiz) * self.min_duzeltme_hizi)
+        return hiz
+
+    def _filtreli_hiz(self, onceki, hedef, dt):
+        hedef = self._ema(onceki, hedef, self.vel_alpha)
+        limit = self.max_decel if abs(hedef) < abs(onceki) else self.max_accel
+        hiz = self._slew(onceki, hedef, limit * dt)
+        if abs(hedef) < self.min_vel and abs(hiz) < self.min_vel:
+            return 0.0
+        return hiz
+
+    @staticmethod
+    def _ema(eski, yeni, alpha):
+        return eski + alpha * (yeni - eski)
+
+    @staticmethod
+    def _slew(eski, yeni, max_delta):
+        delta = yeni - eski
+        if abs(delta) <= max_delta:
+            return yeni
+        return eski + np.sign(delta) * max_delta
 
     @staticmethod
     def _clamp(v, limit):
@@ -291,8 +418,17 @@ def main():
 
     BAGLANTI_STR = "udp:127.0.0.1:14550"
     TAKIP_IRTIFASI = None
-    MAX_YATAY_HIZ = 1.0
+    DRONE_SEND_INTERVAL = 0.1
+    MAX_YATAY_HIZ = 0.50
     MAX_DIKEY_HIZ = 1.0
+    KP_MERKEZLEME = 0.42
+    KI_MERKEZLEME = 0.18
+    MERKEZ_DEADZONE_PX = 18
+
+    GIMBAL_AKTIF = True
+    GIMBAL_TAKIP_AKTIF = False
+    GIMBAL_PITCH_BASLANGIC = -0.785
+    GIMBAL_YAW_BASLANGIC = 0.0
 
     KAYIP_TOLERANSI = 15    # hedef track kaç frame boyunca görünmezse kilit bırakılsın
 
@@ -300,7 +436,11 @@ def main():
     takip = AracTakipSistemi(HEDEF_GORSEL)
     model = YOLO(MODEL_PATH)
 
-    drone = DroneController(BAGLANTI_STR)
+    drone = DroneController(BAGLANTI_STR, send_interval=DRONE_SEND_INTERVAL)
+    gimbal = GimbalController(
+        pitch_baslangic=GIMBAL_PITCH_BASLANGIC,
+        yaw_baslangic=GIMBAL_YAW_BASLANGIC,
+    ) if GIMBAL_AKTIF else None
 
     tracker = Sort(max_age=20, min_hits=1, iou_threshold=0.3)
     checked_tracks = set()
@@ -318,6 +458,7 @@ def main():
     takip_ctrl = None
 
     prev_time = time.time()
+    last_debug_print = 0.0
 
     pencere_adi = "Gazebo Takip (SORT + Otopilot)"
     cv2.namedWindow(pencere_adi, cv2.WINDOW_NORMAL)
@@ -337,12 +478,12 @@ def main():
                 h, w = frame.shape[:2]
                 takip_ctrl = TakipController(
                     frame_w=w, frame_h=h,
-                    max_forward_vel=1.0,
-                    kp_yaw_derece=0.05,
-                    max_aci_derece=15,
+                    kp_yatay=KP_MERKEZLEME,
+                    ki_yatay=KI_MERKEZLEME,
+                    max_yatay_vel=MAX_YATAY_HIZ,
+                    deadzone_px=MERKEZ_DEADZONE_PX,
                     takip_irtifasi=TAKIP_IRTIFASI,
                     max_dikey_vel=MAX_DIKEY_HIZ,
-                    kamera_yaw_ofseti_derece=-90.0,
                 )
 
             frame_counter += 1
@@ -388,6 +529,8 @@ def main():
                         hedef_kilitlendi = True
                         hedef_track_id = track_id
                         kayip_sayaci = 0
+                        if takip_ctrl is not None:
+                            takip_ctrl.reset()
 
             # kilitli hedefi iç Kalman durumundan çiz
             if hedef_kilitlendi:
@@ -409,13 +552,21 @@ def main():
                         if sistem_durumu['baslatildi']:
                             drone.guided_moda_gec()
                             mevcut_irtifa = drone.mevcut_irtifa()
-                            vx, vz, aci_derece = takip_ctrl.hesapla_yonelerek([x1, y1, x2, y2], mevcut_irtifa=mevcut_irtifa)
+                            control_dt = max(time.time() - prev_time, 1e-3)
+                            vx, vy, vz, err_x, err_y = takip_ctrl.hesapla_merkezleme(
+                                [x1, y1, x2, y2],
+                                mevcut_irtifa=mevcut_irtifa,
+                                dt=control_dt,
+                            )
 
-                            drone.send_body_velocity(vx, 0, vz)   # artık yaw_rate parametresi yok, sadece vx/vz
-                            if abs(aci_derece) > 1.0:             # çok küçük açılarda gereksiz komut göndermeyelim
-                                drone.yaw_ile_don(aci_derece, hiz_derece_sn=25)
+                            if gimbal is not None and GIMBAL_TAKIP_AKTIF:
+                                gimbal.update(err_x, err_y, control_dt)
+                            drone.send_body_velocity(vx, vy, vz)
 
-                            print(f"[DEBUG] vx={vx:.3f} vz={vz:.3f} aci={aci_derece:.2f}")
+                            now_dbg = time.time()
+                            if now_dbg - last_debug_print > 0.5:
+                                last_debug_print = now_dbg
+                                print(f"[DEBUG] vx={vx:.3f} vy={vy:.3f} vz={vz:.3f} ex={err_x:.2f} ey={err_y:.2f}")
                         break
 
                 # --- EKSİK OLAN KISIM: kilit kaybını takip et ve sıfırla ---
@@ -429,6 +580,10 @@ def main():
                         checked_tracks.clear()   # <-- ÖNEMLİ: eski ID'ler temizlenmeli ki yeni ID kontrol edilebilsin
                         if sistem_durumu['baslatildi']:
                             drone.dur()
+                        if takip_ctrl is not None:
+                            takip_ctrl.reset()
+                        if gimbal is not None:
+                            gimbal.reset()
                 else:
                     kayip_sayaci = 0
 
@@ -453,6 +608,10 @@ def main():
             elif key == ord('s'):
                 sistem_durumu['baslatildi'] = False
                 drone.dur()
+                if takip_ctrl is not None:
+                    takip_ctrl.reset()
+                if gimbal is not None:
+                    gimbal.reset()
                 print(">> ACİL DUR")
 
     except KeyboardInterrupt:

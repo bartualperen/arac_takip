@@ -94,10 +94,12 @@ RUN python3 -m venv /opt/venv \
     && /opt/venv/bin/pip install --no-cache-dir --upgrade pip setuptools wheel \
     && /opt/venv/bin/pip install --no-cache-dir --retries 10 --timeout 300 --prefer-binary \
     MAVProxy \
+    dronekit \
     pymavlink \
     pexpect \
     future \
     empy==3.3.4 \
+    filterpy \
     "numpy<2.0" \
     scikit-learn \
     ultralytics \
